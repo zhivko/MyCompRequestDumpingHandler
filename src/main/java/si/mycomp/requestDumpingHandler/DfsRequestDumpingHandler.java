@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.wildfly.extension.undertow.deployment.ConfiguredHandlerWrapper;
 import org.xnio.ChannelListener;
 import org.xnio.IoUtils;
 import org.xnio.channels.StreamSourceChannel;
