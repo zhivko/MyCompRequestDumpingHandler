@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jboss-deployment-structure xmlns="urn:jboss:deployment-structure:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<deployment>
+    <dependencies>
+        <module name="si.telekom.DfsRequestDumpingHandler" >
+            <imports>
+                <include path="META-INF**"/>
+                <include path="si**"/>
+            </imports>
+        </module>
+    </dependencies>
+</deployment>
