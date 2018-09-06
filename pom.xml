@@ -18,11 +18,11 @@
 	<dependencies>
 
 		<!-- https://mvnrepository.com/artifact/org.wildfly/wildfly-undertow -->
-		<dependency>
-			<groupId>org.wildfly</groupId>
-			<artifactId>wildfly-undertow</artifactId>
-			<version>10.1.0.Final</version>
-		</dependency>
+<!-- 		<dependency> -->
+<!-- 			<groupId>org.wildfly</groupId> -->
+<!-- 			<artifactId>wildfly-undertow</artifactId> -->
+<!-- 			<version>10.1.0.Final</version> -->
+<!-- 		</dependency> -->
 
 
 		<!-- https://mvnrepository.com/artifact/io.undertow/undertow-core -->

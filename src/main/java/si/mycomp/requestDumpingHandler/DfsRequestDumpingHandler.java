@@ -54,13 +54,10 @@ public class DfsRequestDumpingHandler implements HttpHandler {
 	public void handleRequest(final HttpServerExchange exchange) throws Exception {
 		StringBuilder builder = new StringBuilder();
 
-		// if (!exchange.isRequestComplete() &&
-		// !HttpContinue.requiresContinueResponse(exchange.getRequestHeaders())) {
 		final StreamSourceChannel channel = exchange.getRequestChannel();
 		int readBuffers = 0;
 		final PooledByteBuffer[] bufferedData = new PooledByteBuffer[maxBuffers];
 		PooledByteBuffer buffer = exchange.getConnection().getByteBufferPool().allocate();
-		System.out.println("1");
 		try {
 			do {
 				int r;
@@ -71,7 +68,6 @@ public class DfsRequestDumpingHandler implements HttpHandler {
 						buffer.close();
 					} else {
 						b.flip();
-						System.out.println("2");
 						bufferedData[readBuffers] = buffer;
 					}
 					break;
@@ -95,7 +91,6 @@ public class DfsRequestDumpingHandler implements HttpHandler {
 											buffer.close();
 										} else {
 											b.flip();
-											System.out.println("3");
 											bufferedData[readBuffers] = buffer;
 										}
 										Connectors.ungetRequestBytes(exchange, bufferedData);
@@ -108,7 +103,6 @@ public class DfsRequestDumpingHandler implements HttpHandler {
 										return;
 									} else if (!b.hasRemaining()) {
 										b.flip();
-										System.out.println("4");
 										bufferedData[readBuffers++] = buffer;
 										if (readBuffers == maxBuffers) {
 											Connectors.ungetRequestBytes(exchange, bufferedData);
@@ -150,25 +144,22 @@ public class DfsRequestDumpingHandler implements HttpHandler {
 
 			} while (true);
 
-			System.out.println("length: " + readBuffers);
+			Connectors.ungetRequestBytes(exchange, bufferedData);
+			Connectors.resetRequestChannel(exchange);
+
 			for (int i = 0; i <= readBuffers; i++) {
 				byte[] bytes;
-				System.out.println("i:" + i);
-				System.out.println(bufferedData[i].getBuffer());
-				if (bufferedData[i].getBuffer().hasArray()) {
-					bytes = bufferedData[i].getBuffer().array();
+				ByteBuffer byteBuffer = bufferedData[i].getBuffer().duplicate();
+				if (byteBuffer.hasArray()) {
+					bytes = byteBuffer.array();
 				} else {
-					bytes = new byte[bufferedData[i].getBuffer().remaining()];
-					bufferedData[i].getBuffer().get(bytes);
+					bytes = new byte[byteBuffer.remaining()];
+					byteBuffer.get(bytes);
 				}
 				String str = new String(bytes, StandardCharsets.UTF_8);
 				builder.append(str);
 				builder.append(System.lineSeparator());
-			}
-
-			Connectors.ungetRequestBytes(exchange, bufferedData);
-			Connectors.resetRequestChannel(exchange);
-
+			}			
 		} catch (Exception | Error e) {
 			for (int i = 0; i < bufferedData.length; ++i) {
 				IoUtils.safeClose(bufferedData[i]);
@@ -178,10 +169,10 @@ public class DfsRequestDumpingHandler implements HttpHandler {
 			}
 			throw e;
 		}
+		//log.info("Request:\n" + builder.toString());
 
 		PostExchangeListener mylistener = new PostExchangeListener(builder.toString(), System.nanoTime());
 		exchange.addExchangeCompleteListener(mylistener);
-		// }
 
 		next.handleRequest(exchange);
 	}
@@ -209,8 +200,9 @@ public class DfsRequestDumpingHandler implements HttpHandler {
 		public void exchangeEvent(final HttpServerExchange exchange, NextListener nextListener) {
 
 			try {
-				float duration = (System.nanoTime() - exchange.getRequestStartTime()) / 1000000.0f;
+				float duration = (System.nanoTime() - reqStartNanos) / 1000000.0f;
 				if (duration > Float.valueOf(timeLimit)) {
+					log.info("     start: " + reqStartNanos + " ns");
 					log.info("  duration: " + String.format("%.3f", duration) + " ms");
 					log.info("Reply from: " + exchange.getSourceAddress().getHostName());
 					log.info("Request:\n" + reqString);
