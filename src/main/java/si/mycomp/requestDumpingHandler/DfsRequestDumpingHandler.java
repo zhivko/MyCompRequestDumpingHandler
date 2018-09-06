@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.wildfly.extension.undertow.deployment.ConfiguredHandlerWrapper;
 import org.xnio.ChannelListener;
 import org.xnio.IoUtils;
 import org.xnio.channels.StreamSourceChannel;
@@ -22,7 +23,6 @@ import io.undertow.server.ExchangeCompletionListener;
 import io.undertow.server.HandlerWrapper;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
-import io.undertow.server.handlers.RequestBufferingHandler;
 import io.undertow.server.handlers.builder.HandlerBuilder;
 
 public class DfsRequestDumpingHandler implements HttpHandler {
@@ -38,9 +38,17 @@ public class DfsRequestDumpingHandler implements HttpHandler {
 	String requestStr;
 	int maxBuffers = 1024;
 
-	public DfsRequestDumpingHandler(HttpHandler next, int maxBuffers2) {
+	
+	public int getMaxBuffers() {
+		return maxBuffers;
+	}
+
+	public void setMaxBuffers(int maxBuffers) {
+		this.maxBuffers = maxBuffers;
+	}
+
+	public DfsRequestDumpingHandler(HttpHandler next) {
 		this.next = next;
-		this.maxBuffers = maxBuffers2;
 	}
 
 	@Override
@@ -227,13 +235,17 @@ public class DfsRequestDumpingHandler implements HttpHandler {
 
 		private final int maxBuffers;
 
+		public Wrapper() {
+			this.maxBuffers = 255;
+		}		
+		
 		public Wrapper(int maxBuffers) {
 			this.maxBuffers = maxBuffers;
 		}
 
 		@Override
 		public HttpHandler wrap(HttpHandler handler) {
-			return new DfsRequestDumpingHandler(handler, maxBuffers);
+			return new DfsRequestDumpingHandler(handler);
 		}
 	}
 
