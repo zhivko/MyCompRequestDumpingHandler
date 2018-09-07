@@ -1,8 +1,8 @@
 # MyCompRequestDumpingHandler
 
-Code for dumping Wildfly requests to server.log if request response duration takes more than x seconds.
+Code for dumping **wildfly-10.1.0.Final** requests to server.log if request response duration takes more than x seconds.
 
-standalone.xml configuration:
+##standalone.xml configuration:
 
         <subsystem xmlns="urn:jboss:domain:undertow:3.1">
             <buffer-cache name="default"/>
@@ -28,10 +28,12 @@ standalone.xml configuration:
                 <response-header name="x-powered-by-header" header-name="X-Powered-By" header-value="Undertow/1"/>
                 <filter name="request-dumper" class-name="si.mycomp.requestDumpingHandler.DfsRequestDumpingHandler" module="si.mycomp.requestDumpingHandler">
                     <param name="timeLimit" value="0.1"/>
-                </filter>*
+                    <param name="maxBuffers" value="200"/>   
+	            </filter>*
             </filters>
         </subsystem>
         
+##module configuration
 There should be module.xml inside /wildfly-10.1.0.Final/modules/system/layers/base/si/mycomp/requestDumpingHandler/main/ with following content:
 
         <?xml version="1.0" encoding="UTF-8"?>
@@ -51,4 +53,4 @@ There should be module.xml inside /wildfly-10.1.0.Final/modules/system/layers/ba
             </dependencies>
         </module>
 
-And /wildfly-10.1.0.Final/modules/system/layers/base/si/mycomp/requestDumpingHandler/main/DfsRequestDumpingHandler.jar that is built with this maven project.
+Make sure you put *DfsRequestDumpingHandler.jar* that is produced by *mvn package* /wildfly-10.1.0.Final/modules/system/layers/base/si/mycomp/requestDumpingHandler/main/DfsRequestDumpingHandler.jar that is built with this maven project.
